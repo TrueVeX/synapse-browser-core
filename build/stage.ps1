@@ -25,6 +25,10 @@ $Gn = @(
   'symbol_level:0', 'blink_symbol_level:0', 'v8_symbol_level:0',
   'dcheck_always_on:false',
   'treat_warnings_as_errors:false',
+  # Brave's chromium_src .cc overrides: siso swaps them in itself; with ninja
+  # build/redirect_cc.py does it. Paths live in $Root so they never change
+  # between stages (a changed compile command would rebuild everything).
+  "cc_wrapper:$($Root -replace '\\','/')/py/python.exe -S -E $($Root -replace '\\','/')/redirect_cc.py",
   # Brave services that need Brave's servers are left out of SYNAPSE.
   'enable_brave_rewards:false', 'enable_brave_wallet:false',
   'enable_brave_vpn_v1:false', 'enable_brave_vpn_v2:false',
@@ -43,6 +47,8 @@ Disk
 
 if ($Fresh) {
   New-Item -ItemType Directory -Force $Src | Out-Null
+  # A private copy of Python for the compiler wrapper (see $Gn above).
+  Copy-Item -Recurse (Split-Path (Get-Command python).Source) (Join-Path $Root 'py')
   Log "Cloning brave-core $BraveTag"
   git clone --quiet --depth 1 --branch $BraveTag https://github.com/brave/brave-core.git $Brave
   if ($LASTEXITCODE) { throw "clone failed" }
@@ -67,15 +73,27 @@ if ($Fresh) {
 }
 
 # Generate the build files (no-op when nothing changed) and compile until the deadline.
+Copy-Item "$PSScriptRoot\redirect_cc.py" (Join-Path $Root 'redirect_cc.py') -Force
 Push-Location $Brave
-$gnArgs = $Gn | ForEach-Object { "--gn=$_" }
+# Start-Process joins arguments with spaces, so quote each one.
+$gnArgs = $Gn | ForEach-Object { "`"--gn=$_`"" }
 $buildArgs = @('run', 'build', $Config, '--target_arch=x64', "--target=$Target") + $gnArgs
 Log ("pnpm " + ($buildArgs -join ' '))
 $p = Start-Process -FilePath 'pnpm.cmd' -ArgumentList $buildArgs -NoNewWindow -PassThru
 $null = $p.Handle  # keeps ExitCode readable after the process ends
 $finished = $false
 $stopped = $false
+$checked = $false
 while (-not $p.HasExited) {
+  $tc = Join-Path $Out 'toolchain.ninja'
+  if (-not $checked -and (Test-Path $tc) -and (Get-Item $tc).LastWriteTime -gt $p.StartTime) {
+    $checked = $true
+    if (Select-String -Path $tc -Pattern 'redirect_cc.py' -SimpleMatch -Quiet) { Log "Compiler wrapper is active" }
+    else {
+      taskkill /T /F /PID $p.Id | Out-Null
+      throw "toolchain.ninja does not use redirect_cc.py; Brave's chromium_src overrides would be skipped"
+    }
+  }
   if ((Get-Date).ToUniversalTime() -ge $Deadline.ToUniversalTime()) {
     Log "Deadline reached: stopping the compiler; the next stage resumes from here"
     taskkill /T /F /PID $p.Id | Out-Null
