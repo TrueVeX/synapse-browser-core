@@ -48,7 +48,7 @@ if ($Fresh) {
   if ($LASTEXITCODE) { throw "clone failed" }
   Push-Location $Brave
   Log "Downloading Chromium and dependencies (shallow)"
-  pnpm run init -- --no-history --target_arch=x64
+  pnpm run init --no-history --target_arch=x64
   if ($LASTEXITCODE) { throw "init failed" }
   Pop-Location
   Log "Applying SYNAPSE branding"

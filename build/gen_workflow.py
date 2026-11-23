@@ -21,7 +21,7 @@ permissions:
   actions: write
 
 env:
-  ROOT: C:\\s
+  ROOT: D:\\s
   BUILD_MINUTES: 225   # compile time per stage; the rest is restore and save
 
 jobs:
@@ -51,25 +51,25 @@ STAGE = """  stage-{n}:
       - name: Save build folder for the next stage
         if: ${{{{ !({prev_finished}) && steps.build.outputs.finished == 'false' }}}}
         run: |
-          7z a -tzip -mx=1 -mmt=on "D:\\state.zip" "$env:ROOT\\*" | Out-Null
+          7z a -tzip -mx=1 -mmt=on "C:\\state.zip" "$env:ROOT\\*" | Out-Null
           if ($LASTEXITCODE -gt 1) {{ throw "7z failed: $LASTEXITCODE" }}
-          Get-Item D:\\state.zip | ForEach-Object {{ "state.zip: {{0:N1}} GB" -f ($_.Length / 1GB) }}
+          Get-Item C:\\state.zip | ForEach-Object {{ "state.zip: {{0:N1}} GB" -f ($_.Length / 1GB) }}
       - uses: actions/upload-artifact@v4
         if: ${{{{ !({prev_finished}) && steps.build.outputs.finished == 'false' }}}}
         with:
           name: build-state
-          path: D:\\state.zip
+          path: C:\\state.zip
           compression-level: 0
           retention-days: 2
           overwrite: true
       - name: Package SYNAPSE
         if: ${{{{ steps.build.outputs.finished == 'true' }}}}
-        run: ./build/package.ps1 -Root $env:ROOT -Dest D:\\dist
+        run: ./build/package.ps1 -Root $env:ROOT -Dest C:\\dist
       - uses: actions/upload-artifact@v4
         if: ${{{{ steps.build.outputs.finished == 'true' }}}}
         with:
           name: synapse-windows
-          path: D:\\dist\\*
+          path: C:\\dist\\*
           compression-level: 0
           retention-days: 14
 """
@@ -78,14 +78,14 @@ RESTORE = """      - uses: actions/download-artifact@v4
         if: ${{{{ !({prev_finished}) }}}}
         with:
           name: build-state
-          path: D:\\
+          path: C:\\
       - name: Restore build folder
         if: ${{{{ !({prev_finished}) }}}}
         run: |
-          7z x -y "-o$env:ROOT" D:\\state.zip | Out-Null
+          7z x -y "-o$env:ROOT" C:\\state.zip | Out-Null
           if ($LASTEXITCODE -gt 1) {{ throw "7z failed: $LASTEXITCODE" }}
           Get-PSDrive -PSProvider FileSystem | ForEach-Object {{ "{{0}}: {{1:N1}} GB free" -f $_.Name, ($_.Free / 1GB) }}
-          Remove-Item D:\\state.zip
+          Remove-Item C:\\state.zip
 """
 
 
