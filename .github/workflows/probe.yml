@@ -1,0 +1,13 @@
+# Prints the free disk space, CPU and memory of the free Windows runner.
+name: Runner probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: windows-2022
+    steps:
+      - run: |
+          Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free, {2:N1} GB used" -f $_.Name, ($_.Free / 1GB), ($_.Used / 1GB) }
+          "CPU cores: $((Get-CimInstance Win32_Processor | Measure-Object NumberOfLogicalProcessors -Sum).Sum)"
+          "RAM: {0:N1} GB" -f ((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
+          & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\Include' | Select-Object -ExpandProperty Name

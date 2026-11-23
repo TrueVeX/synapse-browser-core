@@ -1,0 +1,31 @@
+name: Prepare build tools
+description: Python, Node, pnpm, Pillow, 7-Zip and the Windows SDK that Chromium needs
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+    - name: pnpm, Pillow, git settings
+      shell: pwsh
+      run: |
+        npm install -g pnpm@11
+        python -m pip install --quiet pillow
+        git config --global core.longpaths true
+        git config --global core.autocrlf false
+        pnpm --version
+    # Chromium 158 needs SDK 10.0.28000.0 (build/vs_toolchain.py). Same installer
+    # ungoogled-chromium-windows uses on these runners.
+    - name: Windows SDK 10.0.28000.0
+      shell: pwsh
+      run: |
+        if (Test-Path 'C:\Program Files (x86)\Windows Kits\10\Include\10.0.28000.0') { 'SDK already installed'; exit 0 }
+        $installer = "$env:TEMP\winsdksetup.exe"
+        Invoke-WebRequest -Uri 'https://download.microsoft.com/download/38ab8f6d-3676-4860-ae84-3361308b9d7f/KIT_BUNDLE_WINDOWSSDK_MEDIACREATION/winsdksetup.exe' -OutFile $installer
+        $features = '/features OptionId.DesktopCPPx64 OptionId.DesktopCPPx86 OptionId.DesktopCPPArm64 OptionId.WindowsDesktopDebuggers OptionId.UWPCPP OptionId.SigningTools /q /norestart /ceip off'
+        $proc = Start-Process -FilePath $installer -ArgumentList $features -PassThru -Wait
+        if ($proc.ExitCode -ne 0) { throw "winsdksetup.exe failed with code $($proc.ExitCode)" }
+        if (-not (Test-Path 'C:\Program Files (x86)\Windows Kits\10\Include\10.0.28000.0')) { throw 'SDK 10.0.28000.0 not found after install.' }
