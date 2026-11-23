@@ -48,8 +48,15 @@ if ($Fresh) {
   if ($LASTEXITCODE) { throw "clone failed" }
   Push-Location $Brave
   Log "Downloading Chromium and dependencies (shallow)"
-  pnpm run init --no-history --target_arch=x64
-  if ($LASTEXITCODE) { throw "init failed" }
+  # pnpm.cmd, not pnpm: npm's pnpm.ps1 wrapper calls `exit`, which would end this script silently.
+  pnpm.cmd run init --no-history --target_arch=x64 2>&1 | Tee-Object -FilePath (Join-Path $Root 'init.log')
+  $code = $LASTEXITCODE
+  if ($code) {
+    Log "init failed with exit code $code. Patch check:"
+    pnpm.cmd run apply_patches --print-patch-failures-in-json 2>&1 | Select-Object -Last 300
+    Get-Content (Join-Path $Root 'init.log') -Tail 80
+    throw "init failed"
+  }
   Pop-Location
   Log "Applying SYNAPSE branding"
   python "$PSScriptRoot\..\branding\apply_branding.py" $Src
