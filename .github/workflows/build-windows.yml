@@ -40,6 +40,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(false) && steps.build.outputs.finished == 'false' }}
         with:
@@ -88,6 +89,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-1.outputs.finished == 'true') }}
@@ -98,6 +100,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-1.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:
@@ -146,6 +149,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-2.outputs.finished == 'true') }}
@@ -156,6 +160,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-2.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:
@@ -204,6 +209,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-3.outputs.finished == 'true') }}
@@ -214,6 +220,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-3.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:
@@ -262,6 +269,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-4.outputs.finished == 'true') }}
@@ -272,6 +280,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-4.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:
@@ -320,6 +329,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-5.outputs.finished == 'true') }}
@@ -330,6 +340,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-5.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:
@@ -378,6 +389,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-6.outputs.finished == 'true') }}
@@ -388,6 +400,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-6.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:
@@ -436,6 +449,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-7.outputs.finished == 'true') }}
@@ -446,6 +460,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-7.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:
@@ -494,6 +509,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-8.outputs.finished == 'true') }}
@@ -504,6 +520,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-8.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:
@@ -552,6 +569,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-9.outputs.finished == 'true') }}
@@ -562,6 +580,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-9.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:
@@ -610,6 +629,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-10.outputs.finished == 'true') }}
@@ -620,6 +640,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-10.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:
@@ -668,6 +689,7 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
           Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(needs.stage-11.outputs.finished == 'true') }}
@@ -678,6 +700,7 @@ jobs:
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{ !(needs.stage-11.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
         with:

@@ -54,6 +54,7 @@ STAGE = """  stage-{n}:
           7z a -tzip -mx=1 -mmt=on "C:\\state.zip" "$env:ROOT\\*" | Out-Null
           if ($LASTEXITCODE -gt 1) {{ throw "7z failed: $LASTEXITCODE" }}
           Get-Item C:\\state.zip | ForEach-Object {{ "state.zip: {{0:N1}} GB" -f ($_.Length / 1GB) }}
+          exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
         if: ${{{{ !({prev_finished}) && steps.build.outputs.finished == 'false' }}}}
         with:
@@ -86,6 +87,7 @@ RESTORE = """      - uses: actions/download-artifact@v4
           if ($LASTEXITCODE -gt 1) {{ throw "7z failed: $LASTEXITCODE" }}
           Get-PSDrive -PSProvider FileSystem | ForEach-Object {{ "{{0}}: {{1:N1}} GB free" -f $_.Name, ($_.Free / 1GB) }}
           Remove-Item C:\\state.zip
+          exit 0
 """
 
 
