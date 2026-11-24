@@ -116,11 +116,29 @@ def bookmarks_bar(src: Path) -> str:
     return "bookmarks bar: always shown" if write_if_changed(f, new) else "bookmarks bar: already always shown"
 
 
+def ads_internals_deps(src: Path) -> str:
+    # Build fix, not UI: the ads-internals page imports bat_ads.mojom.m.js but
+    # only depends on the mojom target, not the _js target that generates the
+    # file, so ninja can run its webpack step first and fail.
+    f = src / "brave" / "components" / "brave_ads" / "browser" / "resources" / "BUILD.gn"
+    data = read(f)
+    dep = '"//brave/components/services/bat_ads/public/interfaces",'
+    js = '"//brave/components/services/bat_ads/public/interfaces:interfaces_js",'
+    if js in data:
+        return "ads internals deps: already fixed"
+    assert data.count(dep) == 1, f"{dep} not found in {f}"
+    nl = "\r\n" if "\r\n" in data else "\n"
+    indent = data.split(dep)[0].rsplit(nl, 1)[-1]
+    write_if_changed(f, data.replace(dep, dep + nl + indent + js, 1))
+    return "ads internals deps: fixed"
+
+
 def main() -> None:
     src = Path(sys.argv[1]).resolve()
     assert (src / "brave" / "package.json").exists(), f"no brave-core at {src / 'brave'}"
     print(colors(src))
     print(bookmarks_bar(src))
+    print(ads_internals_deps(src))
 
 
 if __name__ == "__main__":
