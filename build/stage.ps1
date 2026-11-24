@@ -114,3 +114,4 @@ Pop-Location
 Disk
 Log "finished=$finished"
 "finished=$($finished.ToString().ToLower())" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
+exit 0  # stopping the compiler leaves a nonzero native exit code; failures above throw
