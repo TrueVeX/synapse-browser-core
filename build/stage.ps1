@@ -74,6 +74,11 @@ if ($Fresh) {
 
 # Generate the build files (no-op when nothing changed) and compile until the deadline.
 Copy-Item "$PSScriptRoot\redirect_cc.py" (Join-Path $Root 'redirect_cc.py') -Force
+# SYNAPSE desktop UI (kit colors, bookmarks bar). Runs every stage; it only
+# rewrites files that change, so ninja recompiles just those.
+Log "Applying SYNAPSE UI"
+python "$PSScriptRoot\..\branding\apply_ui.py" $Src
+if ($LASTEXITCODE) { throw "UI changes failed" }
 Push-Location $Brave
 if (-not $Fresh) {
   # The saved zip cannot keep pnpm's directory links in node_modules; relink them.

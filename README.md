@@ -10,6 +10,9 @@ downloaded during the build.
 ## What SYNAPSE changes
 - **Name and logo:** SYNAPSE Browser by HumanForm Studios everywhere Brave shows its
   name or lion (`branding/apply_branding.py`, icons drawn by `branding/make_icons.py`).
+- **Desktop UI from the Brave Browser UI Kit (Community):** the kit's dark and light colors for the
+  window frame, tabs, toolbar, address bar and bookmarks bar, orange accent buttons, and the
+  bookmarks bar shown on every page (`branding/apply_ui.py`).
 - **Installs separately from Brave:** its own folder (`%LOCALAPPDATA%\HumanFormStudios\SYNAPSE-Browser`),
   its own registry names and its own `synapse-browser:` link scheme.
 - **No Brave account services:** Rewards, Wallet, VPN, Leo AI, News and Tor are left out of the build.
