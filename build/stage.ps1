@@ -83,6 +83,9 @@ Push-Location $Brave
 if (-not $Fresh) {
   # The saved zip cannot keep pnpm's directory links in node_modules; relink them.
   Log "Restoring Brave's node_modules links"
+  # pnpm trusts its own record inside node_modules and would skip the relink,
+  # so remove the folder (rmdir does not follow links) and install again.
+  cmd /c rmdir /s /q node_modules
   pnpm.cmd install --frozen-lockfile --yes 2>&1 | Select-Object -Last 15
   if ($LASTEXITCODE) { throw "pnpm install failed" }
 }
