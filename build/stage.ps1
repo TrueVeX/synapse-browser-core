@@ -75,6 +75,12 @@ if ($Fresh) {
 # Generate the build files (no-op when nothing changed) and compile until the deadline.
 Copy-Item "$PSScriptRoot\redirect_cc.py" (Join-Path $Root 'redirect_cc.py') -Force
 Push-Location $Brave
+if (-not $Fresh) {
+  # The saved zip cannot keep pnpm's directory links in node_modules; relink them.
+  Log "Restoring Brave's node_modules links"
+  pnpm.cmd install --frozen-lockfile --yes 2>&1 | Select-Object -Last 15
+  if ($LASTEXITCODE) { throw "pnpm install failed" }
+}
 # Start-Process joins arguments with spaces, so quote each one.
 $gnArgs = $Gn | ForEach-Object { "`"--gn=$_`"" }
 $buildArgs = @('run', 'build', $Config, '--target_arch=x64', "--target=$Target") + $gnArgs

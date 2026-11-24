@@ -15,6 +15,11 @@ name: SYNAPSE Windows build (Brave Core)
 
 on:
   workflow_dispatch:
+    inputs:
+      resume_from:
+        description: "Run ID whose saved build folder (build-state) stage 1 continues from. Empty = start fresh."
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -76,12 +81,12 @@ STAGE = """  stage-{n}:
 """
 
 RESTORE = """      - uses: actions/download-artifact@v4
-        if: ${{{{ !({prev_finished}) }}}}
+        if: ${{{{ !({prev_finished}){cond} }}}}
         with:
           name: build-state
           path: C:\\
-      - name: Restore build folder
-        if: ${{{{ !({prev_finished}) }}}}
+{run_id}      - name: Restore build folder
+        if: ${{{{ !({prev_finished}){cond} }}}}
         run: |
           7z x -y "-o$env:ROOT" C:\\state.zip | Out-Null
           if ($LASTEXITCODE -gt 1) {{ throw "7z failed: $LASTEXITCODE" }}
@@ -95,11 +100,17 @@ def main() -> None:
     parts = [HEADER]
     for n in range(1, STAGES + 1):
         if n == 1:
-            needs, prev, restore, fresh = "", "false", "", " -Fresh"
+            # Start fresh, or continue from another run's saved build folder.
+            needs, prev = "", "false"
+            restore = RESTORE.format(
+                prev_finished=prev, cond=" && inputs.resume_from != ''",
+                run_id="          run-id: ${{ inputs.resume_from }}\n"
+                       "          github-token: ${{ github.token }}\n")
+            fresh = " -Fresh:$('${{ inputs.resume_from }}' -eq '')"
         else:
             needs = f"    needs: stage-{n - 1}\n"
             prev = f"needs.stage-{n - 1}.outputs.finished == 'true'"
-            restore = RESTORE.format(prev_finished=prev)
+            restore = RESTORE.format(prev_finished=prev, cond="", run_id="")
             fresh = ""
         parts.append(STAGE.format(n=n, needs=needs, prev_finished=prev, restore=restore, fresh=fresh))
     OUT.parent.mkdir(parents=True, exist_ok=True)

@@ -26,6 +26,10 @@ and the next stage carries on. Start it from Actions → "SYNAPSE Windows build"
 
     gh workflow run build-windows.yml --repo TrueVeX/synapse-browser-core
 
+To continue from a failed run's last saved stage (kept for 2 days) instead of starting over:
+
+    gh workflow run build-windows.yml --repo TrueVeX/synapse-browser-core -f resume_from=<run id>
+
 The finished installer and portable zip are uploaded as the `synapse-windows` artifact.
 After changing `build/gen_workflow.py`, run `python build/gen_workflow.py`.
 

@@ -3,6 +3,11 @@ name: SYNAPSE Windows build (Brave Core)
 
 on:
   workflow_dispatch:
+    inputs:
+      resume_from:
+        description: "Run ID whose saved build folder (build-state) stage 1 continues from. Empty = start fresh."
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -30,10 +35,25 @@ jobs:
         if: ${{ !(false) }}
       - uses: ./.github/actions/prepare
         if: ${{ !(false) }}
+      - uses: actions/download-artifact@v4
+        if: ${{ !(false) && inputs.resume_from != '' }}
+        with:
+          name: build-state
+          path: C:\
+          run-id: ${{ inputs.resume_from }}
+          github-token: ${{ github.token }}
+      - name: Restore build folder
+        if: ${{ !(false) && inputs.resume_from != '' }}
+        run: |
+          7z x -y "-o$env:ROOT" C:\state.zip | Out-Null
+          if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
+          Get-PSDrive -PSProvider FileSystem | ForEach-Object { "{0}: {1:N1} GB free" -f $_.Name, ($_.Free / 1GB) }
+          Remove-Item C:\state.zip
+          exit 0
       - name: Build
         id: build
         if: ${{ !(false) }}
-        run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE -Fresh
+        run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE -Fresh:$('${{ inputs.resume_from }}' -eq '')
       - name: Save build folder for the next stage
         if: ${{ !(false) && steps.build.outputs.finished == 'false' }}
         run: |
