@@ -118,14 +118,22 @@ while (-not $p.HasExited) {
   }
   Start-Sleep -Seconds 30
 }
+$failed = $false
 if (-not $stopped) {
   $p.WaitForExit()
-  if ($p.ExitCode -ne 0) { throw "build failed with exit code $($p.ExitCode)" }
-  if (-not (Test-Path (Join-Path $Out 'mini_installer.exe'))) { throw "build ended but mini_installer.exe is missing" }
-  $finished = $true
+  if ($p.ExitCode -ne 0) {
+    # Keep what compiled: the workflow saves the folder, then fails the job,
+    # so a fix can resume from here instead of the previous stage.
+    Log "build failed with exit code $($p.ExitCode); saving progress before failing"
+    $failed = $true
+  } else {
+    if (-not (Test-Path (Join-Path $Out 'mini_installer.exe'))) { throw "build ended but mini_installer.exe is missing" }
+    $finished = $true
+  }
 }
 Pop-Location
 Disk
-Log "finished=$finished"
+Log "finished=$finished failed=$failed"
 "finished=$($finished.ToString().ToLower())" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
+"failed=$($failed.ToString().ToLower())" | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
 exit 0  # stopping the compiler leaves a nonzero native exit code; failures above throw

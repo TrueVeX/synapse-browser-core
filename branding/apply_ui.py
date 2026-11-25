@@ -33,6 +33,8 @@ MIXER = r'''
 #include "ui/color/color_mixer.h"
 #include "ui/color/color_provider.h"
 #include "ui/color/color_provider_key.h"
+#include "ui/color/color_recipe.h"
+#include "ui/color/color_transform.h"
 
 namespace {
 
@@ -91,12 +93,15 @@ def write_if_changed(f: Path, text: str) -> bool:
 def colors(src: Path) -> str:
     f = src / "brave" / "chromium_src" / "chrome" / "browser" / "ui" / "color" / "chrome_color_mixers.cc"
     data = read(f)
-    if MARK in data:
-        return "colors: already applied"
     assert data.count(INCLUDE) == 1, f"{INCLUDE} not found in {f}"
     nl = "\r\n" if "\r\n" in data else "\n"
-    block = MIXER.replace("\n", nl)
-    data = data.replace(INCLUDE, block.lstrip(nl) + nl + INCLUDE + nl + "#undef AddNativeChromeColorMixer", 1)
+    block = MIXER.replace("\n", nl).lstrip(nl) + nl
+    if MARK in data:
+        # Replace the block an earlier version of this script added.
+        start = data.index("// " + MARK)
+        new = data[:start] + block + data[data.index(INCLUDE):]
+        return "colors: updated" if write_if_changed(f, new) else "colors: already applied"
+    data = data.replace(INCLUDE, block + INCLUDE + nl + "#undef AddNativeChromeColorMixer", 1)
     write_if_changed(f, data)
     return "colors: added"
 

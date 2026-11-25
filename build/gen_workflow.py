@@ -68,6 +68,11 @@ STAGE = """  stage-{n}:
           compression-level: 0
           retention-days: 2
           overwrite: true
+      - name: Stop if the build failed
+        if: ${{{{ steps.build.outputs.failed == 'true' }}}}
+        run: |
+          echo "The build failed; its progress is saved as build-state. Fix it, then run again with resume_from = this run's ID."
+          exit 1
       - name: Package SYNAPSE
         if: ${{{{ steps.build.outputs.finished == 'true' }}}}
         run: ./build/package.ps1 -Root $env:ROOT -Dest C:\\dist
