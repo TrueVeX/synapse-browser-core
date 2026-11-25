@@ -7,7 +7,8 @@ are only rewritten when they change, so an unchanged tree causes no rebuild.
 
   - Shields button in the address bar: lion vector icons and PNGs -> SYNAPSE mark
   - Welcome page (first run): 3D lion image -> SYNAPSE mark
-  - Brave's Leo icon set used by Brave's pages: brave-icon-*.svg -> SYNAPSE mark
+  - Brave's Leo icon set: Brave and Brave Search lion icons -> SYNAPSE mark
+    (Brave Search stays the default search engine)
   - About page: "Brave 1.100.x" -> "SYNAPSE 1.100.x"
   - New tab page: the Brave Talk card is off by default
 """
@@ -120,20 +121,27 @@ def leo_icons(brave: Path) -> list[str]:
     leo = brave / "node_modules" / "@brave" / "leo"
     assert leo.is_dir(), f"{leo} not found (run after pnpm install)"
     n = 0
+    # Lion icons: Brave's own logo, and Brave Search's (shown in the new tab
+    # page search box; Brave Search stays the default engine, with our mark).
     # Vector icons drawn by the browser window (Shields button, menus).
     skia = leo / "icons-skia"
-    for name, argb in (("leo_brave_icon_only_face.icon", None),
-                       ("leo_brave_icon_only_face_disabled.icon", (0x73, 0x80, 0x80, 0x80)),
-                       ("leo_brave_icon_monochrome.icon", None)):
-        f = skia / name
-        assert f.exists(), f"{f} not found"
+    for name in ("leo_brave_icon_only_face.icon", "leo_brave_icon_only_face_disabled.icon",
+                 "leo_brave_icon_monochrome.icon"):
+        assert (skia / name).exists(), f"{skia / name} not found"
+    icons = [f for pat in ("leo_brave_icon*.icon", "leo_social_brave*.icon", "leo_brave_search*.icon")
+             for f in skia.glob(pat)]
+    for f in icons:
+        argb = (0x73, 0x80, 0x80, 0x80) if "disabled" in f.name else None
         n += write_if_changed(f, vector_icon(argb).encode("utf-8"))
     # Icons used inside Brave's pages.
-    svgs = list((leo / "icons").glob("brave-icon*.svg"))
-    assert svgs, f"no brave-icon*.svg in {leo / 'icons'}"
+    svgs = [f for pat in ("brave-icon*.svg", "social-brave*.svg", "brave-search*.svg")
+            for f in (leo / "icons").glob(pat)]
+    names = {f.name for f in svgs}
+    for name in ("brave-icon-release-color.svg", "social-brave-release-favicon-fullheight-color.svg"):
+        assert name in names, f"{name} not found in {leo / 'icons'}"
     for f in svgs:
         n += write_if_changed(f, (SVG if "color" in f.name else MONO_SVG).encode("utf-8"))
-    return [f"Leo lion icons: {n} replaced ({len(svgs) + 3} checked)"]
+    return [f"Leo lion icons: {n} replaced ({len(svgs) + len(icons)} checked)"]
 
 
 def about_version(brave: Path) -> str:
@@ -158,18 +166,18 @@ def talk_card_off(brave: Path) -> str:
     return "Brave Talk card: off by default"
 
 
-def google_default(brave: Path) -> str:
-    # Brave picks its default search engine per region (Brave Search almost
-    # everywhere). SYNAPSE defaults to Google; the other engines stay listed.
-    f = brave / "chromium_src" / "components" / "search_engines" / "template_url_prepopulate_data_resolver.cc"
+def search_favicon(brave: Path) -> str:
+    # Brave Search stays the default engine. Its favicon (address bar
+    # suggestions, search engine list) is downloaded from this URL; point it at
+    # the SYNAPSE logo on the SYNAPSE site instead of Brave's lion.
+    f = brave / "components" / "search_engines" / "brave_prepopulated_engines.cc"
     data = read(f)
-    old = "regional_capabilities_->GetRegionalDefaultEngine()"
-    new = "::TemplateURLPrepopulateData::PREPOPULATED_ENGINE_ID_GOOGLE"
+    old, new = "https://cdn.search.brave.com/serp/favicon.ico", "https://synapse-browser.vercel.app/apple-icon.png"
     if new in data:
-        return "default search: already Google"
+        return "Brave Search favicon: already SYNAPSE"
     assert data.count(old) == 1, f"{old} not found in {f}"
     write_if_changed(f, data.replace(old, new).encode("utf-8"))
-    return "default search: Google"
+    return "Brave Search favicon: SYNAPSE logo"
 
 
 def main() -> None:
@@ -177,7 +185,7 @@ def main() -> None:
     brave = src / "brave"
     assert (brave / "package.json").exists(), f"no brave-core at {brave}"
     for line in shields_and_welcome(brave) + leo_icons(brave) + [
-            about_version(brave), talk_card_off(brave), google_default(brave)]:
+            about_version(brave), talk_card_off(brave), search_favicon(brave)]:
         print(line)
 
 
