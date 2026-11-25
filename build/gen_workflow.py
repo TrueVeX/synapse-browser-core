@@ -53,15 +53,15 @@ STAGE = """  stage-{n}:
         id: build
         if: ${{{{ !({prev_finished}) }}}}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE{fresh}
-      - name: Save build folder for the next stage
-        if: ${{{{ !({prev_finished}) && steps.build.outputs.finished == 'false' }}}}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{{{ !({prev_finished}) && steps.build.outputs.finished != '' }}}}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\\state.zip" "$env:ROOT\\*" | Out-Null
           if ($LASTEXITCODE -gt 1) {{ throw "7z failed: $LASTEXITCODE" }}
           Get-Item C:\\state.zip | ForEach-Object {{ "state.zip: {{0:N1}} GB" -f ($_.Length / 1GB) }}
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{{{ !({prev_finished}) && steps.build.outputs.finished == 'false' }}}}
+        if: ${{{{ !({prev_finished}) && steps.build.outputs.finished != '' }}}}
         with:
           name: build-state
           path: C:\\state.zip

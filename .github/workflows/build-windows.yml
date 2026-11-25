@@ -54,15 +54,15 @@ jobs:
         id: build
         if: ${{ !(false) }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE -Fresh:$('${{ inputs.resume_from }}' -eq '')
-      - name: Save build folder for the next stage
-        if: ${{ !(false) && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(false) && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(false) && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(false) && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -119,15 +119,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-1.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-1.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-1.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-1.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-1.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -184,15 +184,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-2.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-2.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-2.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-2.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-2.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -249,15 +249,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-3.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-3.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-3.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-3.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-3.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -314,15 +314,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-4.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-4.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-4.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-4.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-4.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -379,15 +379,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-5.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-5.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-5.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-5.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-5.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -444,15 +444,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-6.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-6.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-6.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-6.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-6.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -509,15 +509,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-7.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-7.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-7.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-7.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-7.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -574,15 +574,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-8.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-8.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-8.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-8.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-8.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -639,15 +639,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-9.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-9.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-9.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-9.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-9.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -704,15 +704,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-10.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-10.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-10.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-10.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-10.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip
@@ -769,15 +769,15 @@ jobs:
         id: build
         if: ${{ !(needs.stage-11.outputs.finished == 'true') }}
         run: ./build/stage.ps1 -Root $env:ROOT -Deadline $env:DEADLINE
-      - name: Save build folder for the next stage
-        if: ${{ !(needs.stage-11.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+      - name: Save build folder (next stage, or a later fix, resumes from it)
+        if: ${{ !(needs.stage-11.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         run: |
           7z a -tzip -mx=1 -mmt=on "C:\state.zip" "$env:ROOT\*" | Out-Null
           if ($LASTEXITCODE -gt 1) { throw "7z failed: $LASTEXITCODE" }
           Get-Item C:\state.zip | ForEach-Object { "state.zip: {0:N1} GB" -f ($_.Length / 1GB) }
           exit 0  # 7z exit code 1 = warnings only (a few broken links in the tree)
       - uses: actions/upload-artifact@v4
-        if: ${{ !(needs.stage-11.outputs.finished == 'true') && steps.build.outputs.finished == 'false' }}
+        if: ${{ !(needs.stage-11.outputs.finished == 'true') && steps.build.outputs.finished != '' }}
         with:
           name: build-state
           path: C:\state.zip

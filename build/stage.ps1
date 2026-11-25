@@ -89,6 +89,11 @@ if (-not $Fresh) {
   pnpm.cmd install --frozen-lockfile --yes 2>&1 | Select-Object -Last 15
   if ($LASTEXITCODE) { throw "pnpm install failed" }
 }
+# Brave's lion and name in places the branding step does not reach. Runs after
+# every pnpm install, which brings Brave's original icons back.
+Log "Removing Brave logos and names"
+python "$PSScriptRoot\..\branding\debrand.py" $Src
+if ($LASTEXITCODE) { throw "debrand failed" }
 # Start-Process joins arguments with spaces, so quote each one.
 $gnArgs = $Gn | ForEach-Object { "`"--gn=$_`"" }
 $buildArgs = @('run', 'build', $Config, '--target_arch=x64', "--target=$Target") + $gnArgs
