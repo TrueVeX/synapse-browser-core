@@ -180,12 +180,106 @@ def search_favicon(brave: Path) -> str:
     return "Brave Search favicon: SYNAPSE logo"
 
 
+# Exact text swaps: (file under brave/, old, new). Each old text must be found
+# (or already replaced), so an upstream change fails loudly.
+SWAPS = [
+    # Internal pages show synapse://settings etc. instead of brave://settings.
+    ("components/constants/url_constants.h",
+     'kBraveUIScheme[] = "brave";', 'kBraveUIScheme[] = "synapse";'),
+    ("chromium_src/content/public/common/url_constants.h",
+     'kBraveUIScheme[] = "brave";', 'kBraveUIScheme[] = "synapse";'),
+    ("browser/ui/webui/brave_web_ui_controller_factory.cc",
+     'url.SchemeIs("brave")', 'url.SchemeIs("synapse")'),
+    ("chromium_src/components/webui/chrome_urls/resources/app.html.ts.lit_mangler.ts",
+     '/chrome:/, "brave:"', '/chrome:/, "synapse:"'),
+    # "List of Brave URLs" page heading.
+    ("chromium_src/components/webui/chrome_urls/resources/app.html.ts.lit_mangler.ts",
+     "'List of Brave URLs'", "'List of SYNAPSE URLs'"),
+    ("components/webui/about_ui.cc",
+     '"List of Brave URLs"', '"List of SYNAPSE URLs"'),
+    # What websites can see: the Client Hints brand and the WebGL
+    # fingerprinting-protection value.
+    ("chromium_src/components/embedder_support/user_agent_utils.cc",
+     'kBraveBrandNameForCHUA[] = "Brave";', 'kBraveBrandNameForCHUA[] = "SYNAPSE";'),
+    ("chromium_src/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc",
+     'blink::String("Brave")', 'blink::String("SYNAPSE")'),
+    # Windows policy registry key: ...\Policies\HumanFormStudios\SYNAPSE.
+    ("chromium_src/chrome/install_static/user_data_dir.cc",
+     'path->append(L"Brave");', 'path->append(L"SYNAPSE");'),
+    # Chrome Web Store button ("Add to Chrome" -> "Add to SYNAPSE").
+    ("components/brave_extension/extension/brave_extension/webstore.ts",
+     "text.replace('Chrome', 'Brave')", "text.replace('Chrome', 'SYNAPSE')"),
+    # Screen-reader name of the new tab page search boxes.
+    ("components/brave_new_tab_ui/components/default/searchPromotion/searchBox.tsx",
+     'aria-label="Brave"', 'aria-label="Search"'),
+    ("components/brave_private_new_tab_ui/resources/page/components/search-box/index.tsx",
+     'aria-label="Brave"', 'aria-label="Search"'),
+    ("components/brave_ads/browser/resources/components/resources.tsx",
+     "delivered via Brave's component updater", "delivered via SYNAPSE's component updater"),
+]
+
+
+def swaps(brave: Path) -> str:
+    n = 0
+    for rel, old, new in SWAPS:
+        f = brave / rel
+        data = read(f)
+        if old in data:
+            n += write_if_changed(f, data.replace(old, new).encode("utf-8"))
+        else:
+            assert new in data, f"{old!r} not found in {f}"
+    return f"Brave names and brave: scheme: {n} of {len(SWAPS)} swaps made"
+
+
+# brave:// links written into Brave's code and translations -> synapse://, so
+# links keep working with the renamed scheme. Tests and other platforms are
+# left alone.
+SCHEME_EXTS = {".cc", ".h", ".mm", ".ts", ".tsx", ".js", ".html", ".grd", ".grdp", ".xtb", ".json"}
+SKIP_DIRS = {"node_modules", ".git", "test", "tests", "ios", "android", "build", "script", "third_party",
+             "storybook", "stories"}
+
+
+def candidates(brave: Path):
+    """Files that may contain brave:// links. git grep is fast; walking the
+    tree is the fallback when brave/ is not a git checkout."""
+    import os
+    import subprocess
+    try:
+        out = subprocess.run(["git", "-C", str(brave), "grep", "-l", "-I", "-F", "brave://"],
+                             capture_output=True, check=True).stdout.decode("utf-8")
+        for line in out.splitlines():
+            yield brave / line
+        return
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    for root, dirs, files in os.walk(brave):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
+        for name in files:
+            yield Path(root) / name
+
+
+def scheme_links(brave: Path) -> str:
+    changed = seen = 0
+    for f in candidates(brave):
+        rel = f.relative_to(brave)
+        if (f.suffix not in SCHEME_EXTS or "test" in f.name
+                or any(p in SKIP_DIRS or p.startswith("test") for p in rel.parts[:-1])):
+            continue
+        data = f.read_bytes()
+        if b"brave://" not in data:
+            continue
+        seen += 1
+        changed += write_if_changed(f, data.replace(b"brave://", b"synapse://"))
+    return f"brave:// links: {changed} of {seen} files changed"
+
+
 def main() -> None:
     src = Path(sys.argv[1]).resolve()
     brave = src / "brave"
     assert (brave / "package.json").exists(), f"no brave-core at {brave}"
     for line in shields_and_welcome(brave) + leo_icons(brave) + [
-            about_version(brave), talk_card_off(brave), search_favicon(brave)]:
+            about_version(brave), talk_card_off(brave), search_favicon(brave),
+            swaps(brave), scheme_links(brave)]:
         print(line)
 
 
